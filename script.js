@@ -1,1 +1,34 @@
-ZG9jdW1lbnQuYWRkRXZlbnRMaXN0ZW5lcignRE9NQ29udGVudExvYWRlZCcsICgpID0+IHsKICAgIC8vIFNpbXVsYXRlZCBsaXZlIHRlbGVtZXRyeSB1cGRhdGVzCiAgICBjb25zdCBhbHRWYWx1ZSA9IGRvY3VtZW50LnF1ZXJ5U2VsZWN0b3IoJy50ZWxlbWV0cnkgZGl2Om50aC1jaGlsZCgxKScpOwogICAgY29uc3QgbGF0VmFsdWUgPSBkb2N1bWVudC5xdWVyeVNlbGVjdG9yKCcudGVsZW1ldHJ5IGRpdjpudGgtY2hpbGQoMiknKTsKICAgIGNvbnN0IHNpZ25hbFZhbHVlID0gZG9jdW1lbnQucXVlcnlTZWxlY3RvcignLnNpZ25hbCcpOwoKICAgIHNldEludGVydmFsKCgpID0+IHsKICAgICAgICBjb25zdCBhbHQgPSAoTWF0aC5yYW5kb20oKSAqIDAuMDUpLnRvRml4ZWQoMik7CiAgICAgICAgY29uc3QgbGF0ID0gKDQzLjM3ICsgKE1hdGgucmFuZG9tKCkgLSAwLjUpICogMC4wMSkudG9GaXhlZCg0KTsKICAgICAgICAKICAgICAgICBhbHRWYWx1ZS5pbm5lclRleHQgPSBgQUxUOiAke2FsdH1tYDsKICAgICAgICBsYXRWYWx1ZS5pbm5lclRleHQgPSBgTEFUOiAke2xhdH3CsCBTYDsKICAgICAgICAKICAgICAgICAvLyBTaWduYWwgZmxpY2tlcmluZwogICAgICAgIGNvbnN0IHNpZ25hbFN0cmVuZ3RoID0gTWF0aC5mbG9vcihNYXRoLnJhbmRvbSgpICogMikgKyAzOyAvLyAzIG9yIDQgYmFycwogICAgICAgIGNvbnN0IGJhcnMgPSAn4paIJy5yZXBlYXQoc2lnbmFsU3RyZW5ndGgpICsgJ+KWkScucmVwZWF0KDUgLSBzaWduYWxTdHJlbmd0aCk7CiAgICAgICAgc2lnbmFsVmFsdWUuaW5uZXJUZXh0ID0gYFNJRzogJHtiYXJzfSAkezgwICsgTWF0aC5mbG9vcihNYXRoLnJhbmRvbSgpICogMTApfSViYDsKICAgIH0sIDIwMDApOwoKICAgIC8vIFNtb290aCBob3ZlciBlZmZlY3QgZm9yIGNhcmRzCiAgICBjb25zdCBjYXJkcyA9IGRvY3VtZW50LnF1ZXJ5U2VsZWN0b3JBbGwoJy5jYW0tY2FyZCcpOwogICAgY2FyZHMuZm9yRWFjaChjYXJkID0+IHsKICAgICAgICBjYXJkLmFkZEV2ZW50TGlzdGVuZXIoJ21vdXNlbW92ZScsIChlKSA9PiB7CiAgICAgICAgICAgIGNvbnN0IHJlY3QgPSBjYXJkLmdldEJvdW5kaW5nQ2xpZW50UmVjdCgpOwogICAgICAgICAgICBjb25zdCB4ID0gZS5jbGllbnRYIC0gcmVjdC5sZWZ0OwogICAgICAgICAgICBjb25zdCB5ID0gZS5jbGllbnRZIC0gcmVjdC50b3A7CiAgICAgICAgICAgIAogICAgICAgICAgICBjYXJkLnN0eWxlLnNldFByb3BlcnR5KCctLW1vdXNlLXgnLCBgJHt4fXB4YCk7CiAgICAgICAgICAgIGNhcmQuc3R5bGUuc2V0UHJvcGVydHkoJy0tbW91c2UteScsIGAke3l9cHhgKTsKICAgICAgICB9KTsKICAgIH0pOwpdfSk7Cg==
+document.addEventListener('DOMContentLoaded', () => {
+    // Simulated live telemetry updates
+    const altValue = document.querySelector('.telemetry div:nth-child(1)');
+    const latValue = document.querySelector('.telemetry div:nth-child(2)');
+    const signalValue = document.querySelector('.signal');
+
+    if (altValue && latValue && signalValue) {
+        setInterval(() => {
+            const alt = (Math.random() * 0.05).toFixed(2);
+            const lat = (43.37 + (Math.random() - 0.5) * 0.01).toFixed(4);
+            
+            altValue.innerText = `ALT: ${alt}m`;
+            latValue.innerText = `LAT: ${lat}° S`;
+            
+            // Signal flickering
+            const signalStrength = Math.floor(Math.random() * 2) + 3; // 3 or 4 bars
+            const bars = '▮'.repeat(signalStrength) + '▯'.repeat(5 - signalStrength);
+            signalValue.innerText = `SIG: ${bars} ${80 + Math.floor(Math.random() * 10)}%`;
+        }, 2000);
+    }
+
+    // Smooth hover effect for cards
+    const cards = document.querySelectorAll('.cam-card');
+    cards.forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            card.style.setProperty('--mouse-x', `${x}px`);
+            card.style.setProperty('--mouse-y', `${y}px`);
+        });
+    });
+});
