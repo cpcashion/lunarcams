@@ -4,20 +4,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const latValue = document.querySelector('.telemetry div:nth-child(2)');
     const signalValue = document.querySelector('.signal');
 
-    if (altValue && latValue && signalValue) {
-        setInterval(() => {
-            const alt = (Math.random() * 0.05).toFixed(2);
-            const lat = (43.37 + (Math.random() - 0.5) * 0.01).toFixed(4);
-            
-            altValue.innerText = `ALT: ${alt}m`;
-            latValue.innerText = `LAT: ${lat}° S`;
-            
-            // Signal flickering
-            const signalStrength = Math.floor(Math.random() * 2) + 3; // 3 or 4 bars
-            const bars = '▮'.repeat(signalStrength) + '▯'.repeat(5 - signalStrength);
-            signalValue.innerText = `SIG: ${bars} ${80 + Math.floor(Math.random() * 10)}%`;
-        }, 2000);
-    }
+    setInterval(() => {
+        const alt = (Math.random() * 0.05).toFixed(2);
+        const lat = (43.37 + (Math.random() - 0.5) * 0.01).toFixed(4);
+        
+        altValue.innerText = `ALT: ${alt}m`;
+        latValue.innerText = `LAT: ${lat}° S`;
+        
+        // Signal flickering
+        const signalStrength = Math.floor(Math.random() * 2) + 3; // 3 or 4 bars
+        const bars = '█'.repeat(signalStrength) + '░'.repeat(5 - signalStrength);
+        signalValue.innerText = `SIG: ${bars} ${80 + Math.floor(Math.random() * 10)}%`;
+    }, 2000);
 
     // Smooth hover effect for cards
     const cards = document.querySelectorAll('.cam-card');
