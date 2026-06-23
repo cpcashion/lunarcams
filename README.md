@@ -2,9 +2,14 @@
 
 Vite project for lunarcams.com.
 
-## Migration to Render
-This project was migrated from Vercel to Render.
+## Deployment
+This project is deployed to GitHub Pages.
+
+## Migration History
+- Originally hosted on Vercel.
+- Migrated to Render.
+- Final migration to GitHub Pages on Tuesday, June 23, 2026.
 
 Build Settings:
-- Build Command: \`npm run build\`
-- Publish Directory: \`dist\`
+- Build Command: `npm run build`
+- Publish Directory: `dist`
