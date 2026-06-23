@@ -3,131 +3,130 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LunarCams | The Moon. In Real Time.</title>
+    <title>LunarCams – Live lunar surface monitoring</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body class="dark-theme">
-    <header>
-        <div class="header-left">
-            <div class="logo">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21C16.9706 21 21 16.9706 21 12C21 11.6568 20.9808 11.3181 20.9435 10.9852C20.3705 11.6369 19.5328 12.0513 18.5999 12.0513C16.8327 12.0513 15.3999 10.6184 15.3999 8.85128C15.3999 7.42398 16.3353 6.21523 17.6255 5.81181C16.147 4.0483 13.9114 3 11.4103 3C11.6062 3 11.8021 3 11.9981 3.00395C12.0006 3.00132 12.0032 2.99868 12.0057 2.99605L12 3Z" fill="url(#logo_grad)"/>
-                    <defs>
-                        <linearGradient id="logo_grad" x1="3" y1="3" x2="21" y2="21" gradientUnits="userSpaceOnUse">
-                            <stop stop-color="#4BB8FB"/>
-                            <stop offset="1" stop-color="#934BFB"/>
-                        </linearGradient>
-                    </defs>
-                </svg>
-                <span>LUNARCAMS</span>
+    <div id="app">
+        <!-- Dashboard Header -->
+        <header class="dashboard-header">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon">●</span>
+                    <span class="logo-text">LunarCams</span>
+                    <span class="logo-sub">Surface Operations Network</span>
+                </div>
+                <div class="header-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">UTC</span>
+                        <span id="utc-clock" class="stat-value">--:--:--</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-item">
+                        <span class="stat-label">Feeds</span>
+                        <span class="stat-value"><span class="accent">9</span> / 12</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat-item">
+                        <span class="stat-label">Uplink</span>
+                        <span class="stat-value text-success">Nominal</span>
+                    </div>
+                </div>
             </div>
-        </div>
-        <nav class="header-center">
-            <div class="search-bar">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                <input type="text" placeholder="Search cameras, locations...">
-            </div>
-            <a href="#" class="active">Marketplace</a>
-            <a href="#">Collections</a>
-            <a href="#">Explore</a>
-            <a href="#">How It Works</a>
-        </nav>
-        <div class="header-right">
-            <button class="icon-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></button>
-            <button class="icon-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg></button>
-            <button class="btn-primary">Connect Wallet</button>
-        </div>
-    </header>
+        </header>
 
-    <main>
-        <section class="hero">
-            <div class="hero-content">
-                <h1>The Moon. <br><span class="accent">In Real Time.</span></h1>
-                <p>Experience the lunar surface like never before through our decentralized network of 4K live streams and historical archives.</p>
-                <div class="hero-btns">
-                    <button class="btn-primary">Explore Cameras</button>
-                    <button class="btn-secondary">How It Works</button>
-                </div>
-                <div class="hero-stats">
-                    <div class="stat-card">
-                        <span class="stat-value">47</span>
-                        <span class="stat-label">Live Cameras</span>
+        <main>
+            <!-- Hero Section -->
+            <section class="hero-section">
+                <div class="hero-grid">
+                    <div class="hero-text">
+                        <div class="badge-row">
+                            <span class="badge pulse">Streaming now</span>
+                            <span class="badge-text">38 sensors reporting</span>
+                        </div>
+                        <h1>Eyes on the Moon, one frame at a time.</h1>
+                        <p>LunarCams stitches a constellation of surface and orbital cameras into a single control room. Watch craters, seas, and landing sites with live telemetry and radar.</p>
+                        <div class="hero-actions">
+                            <button class="btn-primary">Explore cameras</button>
+                            <button class="btn-secondary">How it works</button>
+                        </div>
+                        <div class="hero-stats-row">
+                            <div class="big-stat">
+                                <span class="big-stat-value">12</span>
+                                <span class="big-stat-label">Cameras online</span>
+                            </div>
+                            <div class="big-stat">
+                                <span class="big-stat-value">92%</span>
+                                <span class="big-stat-label">Coverage</span>
+                            </div>
+                            <div class="big-stat">
+                                <span class="big-stat-value">1.3s</span>
+                                <span class="big-stat-label">Latency</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="stat-card">
-                        <span class="stat-value">1,286</span>
-                        <span class="stat-label">Total Videos</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-value">24/7</span>
-                        <span class="stat-label">Coverage</span>
-                    </div>
-                </div>
-            </div>
-            <div class="hero-visual">
-                <div class="glass-panel main-feed">
-                    <div class="feed-header">
-                        <span class="badge live">LIVE</span>
-                        <span class="cam-id">CAM-08 // TYCHO CRATER</span>
-                        <span class="rec-dot"></span>
-                    </div>
-                    <div class="feed-content">
-                        <!-- Mock Video Feed -->
-                        <div class="video-placeholder">
-                             <div class="radar-overlay">
-                                <div class="radar-sweep"></div>
-                                <div class="radar-target" style="top: 30%; left: 40%;"></div>
-                             </div>
-                             <div class="telemetry">
-                                <div>ALT: 0.00m</div>
-                                <div>LAT: 43.37° S</div>
-                                <div>LNG: 11.22° W</div>
-                                <div class="signal">SIG: ████░ 84%</div>
-                             </div>
+
+                    <!-- Main Viewport -->
+                    <div class="main-viewport glass-panel">
+                        <div class="viewport-header">
+                            <div class="cam-badge">LC-01 · Live 4K · 24 fps</div>
+                            <div class="cam-location" id="active-cam-title">Tycho Crater</div>
+                        </div>
+                        <div class="feed-container">
+                            <div class="scanline"></div>
+                            <img id="main-feed-img" src="https://images.unsplash.com/photo-1522030239044-1293df656541?auto=format&fit=crop&q=80&w=1200" alt="Lunar Surface" class="feed-img">
+                            
+                            <div class="overlay-telemetry">
+                                <div class="tel-col">
+                                    <div class="tel-item"><span class="label">LAT</span> <span id="tel-lat">43.31° S</span></div>
+                                    <div class="tel-item"><span class="label">LNG</span> <span id="tel-lng">11.36° W</span></div>
+                                </div>
+                                <div class="tel-col">
+                                    <div class="tel-item"><span class="label">ALT</span> <span id="tel-alt">112 km</span></div>
+                                    <div class="tel-item"><span class="label">SIG</span> <span id="tel-sig">-68 dBm</span></div>
+                                </div>
+                            </div>
+
+                            <div class="radar-container">
+                                <div class="radar-circle">
+                                    <div class="radar-sweep"></div>
+                                    <div class="radar-target" style="top: 30%; left: 45%;"></div>
+                                </div>
+                                <div class="radar-info">
+                                    <div class="radar-title">Surface radar</div>
+                                    <div class="radar-desc">Tracking 5 returns</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <section class="grid-section">
-            <div class="section-header">
-                <h2>Live Cameras</h2>
-                <a href="#" class="view-all">View all cameras →</a>
-            </div>
-            <div class="card-grid">
-                <!-- Card 1 -->
-                <div class="cam-card glass-panel">
-                    <div class="cam-thumb" style="background-image: url('https://images.unsplash.com/photo-1522030239044-1293df656541?auto=format&fit=crop&q=80&w=400')">
-                        <span class="badge live">LIVE</span>
-                    </div>
-                    <div class="cam-info">
-                        <h3>Sea of Tranquility</h3>
-                        <p>Station 4 // Apollo 11 Site</p>
-                        <div class="cam-meta">
-                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg> 1.2k watching</span>
-                        </div>
-                    </div>
+            <!-- Camera Grid -->
+            <section class="grid-section">
+                <div class="section-header">
+                    <h2>01 Live cameras</h2>
+                    <p>Tap any camera to load it into the main feed.</p>
                 </div>
-                <!-- Card 2 -->
-                <div class="cam-card glass-panel">
-                    <div class="cam-thumb" style="background-image: url('https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?auto=format&fit=crop&q=80&w=400')">
-                        <span class="badge live">LIVE</span>
-                    </div>
-                    <div class="cam-info">
-                        <h3>Copernicus Crater</h3>
-                        <p>Station 12 // Rim West</p>
-                        <div class="cam-meta">
-                            <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg> 842 watching</span>
-                        </div>
-                    </div>
+                <div class="camera-grid" id="camera-grid">
+                    <!-- JS will populate this -->
+                </div>
+            </section>
+        </main>
+
+        <footer class="dashboard-footer">
+            <div class="footer-content">
+                <div class="footer-left">
+                    <span class="network-status">LunarCams Network</span>
+                    <span class="status-indicator"></span>
+                    <span class="status-text">All systems nominal</span>
+                </div>
+                <div class="footer-right">
+                    <span>Imagery courtesy of NASA / LRO</span>
                 </div>
             </div>
-        </section>
-    </main>
-
+        </footer>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>
