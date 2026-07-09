@@ -9,3 +9,6 @@
 .lc-nav-link{cursor:pointer;background:none;border:none;font:inherit;color:var(--muted);padding:.375rem .625rem;border-radius:.5rem;transition:color .15s,background-color .15s}
 .lc-nav-link:hover{color:var(--ink);background:var(--panel-strong)}
 @media (max-width:1023px){.lc-nav{display:none}}
+@keyframes lc-slide-l{0%{opacity:0;transform:translateX(28px)}100%{opacity:1;transform:translateX(0)}}
+@keyframes lc-slide-r{0%{opacity:0;transform:translateX(-28px)}100%{opacity:1;transform:translateX(0)}}
+.lc-gallery-stage{touch-action:none;overscroll-behavior:contain}
