@@ -80,29 +80,49 @@ img{max-width:100%;display:block}
   position:sticky;top:0;z-index:40;
 }
 .topbar-row{
-  display:flex;align-items:center;justify-content:space-between;gap:16px;
-  padding-block:14px;flex-wrap:wrap;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding-block:10px;
 }
-.brand{display:flex;align-items:center;gap:10px}
+.brand{display:flex;align-items:center;gap:9px;min-width:0}
 .brand-mark{
-  width:34px;height:34px;border:1.5px solid var(--ink);border-radius:50%;
+  width:28px;height:28px;border:1.5px solid var(--ink);border-radius:50%;
   display:grid;place-items:center;position:relative;flex-shrink:0;
 }
-.brand-mark::before{content:'';position:absolute;inset:6px;border:1px solid var(--brass);border-radius:50%}
-.brand-mark::after{content:'';position:absolute;width:2px;height:10px;background:var(--brass);top:-2px;left:50%;transform:translateX(-50%)}
-.brand-text{display:flex;flex-direction:column;line-height:1.15}
-.brand-text .name{font-family:var(--font-display);font-weight:700;font-size:19px;letter-spacing:0.01em}
-.brand-text .tag{font-family:var(--font-mono);font-size:10.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--graphite)}
-.topnav{display:flex;align-items:center;gap:2px;flex-wrap:wrap}
-.topnav button{
-  background:none;border:none;cursor:pointer;padding:7px 11px;border-radius:5px;
-  font-size:13px;color:var(--graphite);font-weight:500;transition:background-color .15s,color .15s;
+.brand-mark::before{content:'';position:absolute;inset:5px;border:1px solid var(--brass);border-radius:50%}
+.brand-mark::after{content:'';position:absolute;width:2px;height:8px;background:var(--brass);top:-2px;left:50%;transform:translateX(-50%)}
+.brand-text{display:flex;flex-direction:column;line-height:1.1;min-width:0}
+.brand-text .name{font-family:var(--font-display);font-weight:700;font-size:16px;letter-spacing:0.01em;white-space:nowrap}
+.brand-text .tag{font-family:var(--font-mono);font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:var(--graphite);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* nav menu: single compact trigger, everything else lives in the dropdown */
+.nav-wrap{position:relative;flex-shrink:0}
+.nav-trigger{
+  display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.4);
+  border:1px solid var(--line-strong);border-radius:20px;padding:5px 12px 5px 6px;cursor:pointer;
+  color:var(--ink);transition:background-color .15s,border-color .15s;
 }
-.topnav button:hover{background:var(--blueprint-soft);color:var(--blueprint)}
-.stat-strip{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
-.stat-strip .item{display:flex;flex-direction:column;gap:1px}
-.stat-strip dt{font-family:var(--font-mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--graphite)}
-.stat-strip dd{margin:0;font-family:var(--font-mono);font-size:13px;font-weight:500}
+.nav-trigger:hover,.nav-trigger[aria-expanded="true"]{background:var(--blueprint-soft);border-color:var(--blueprint)}
+.nav-trigger svg{display:block}
+.nav-trigger .lbl{font-family:var(--font-mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--graphite)}
+.nav-menu{
+  position:absolute;top:calc(100% + 10px);right:0;min-width:230px;z-index:50;
+  border-radius:var(--radius);padding:8px;
+  background:rgba(255,255,255,0.86);-webkit-backdrop-filter:blur(24px) saturate(160%);backdrop-filter:blur(24px) saturate(160%);
+  border:1px solid var(--glass-border);box-shadow:var(--glass-shadow);
+  opacity:0;transform:translateY(-6px) scale(0.98);pointer-events:none;transition:opacity .15s,transform .15s;
+}
+.nav-menu.open{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
+.nav-menu button.nav-link{
+  display:block;width:100%;text-align:left;background:none;border:none;cursor:pointer;padding:9px 10px;border-radius:6px;
+  font-size:13.5px;color:var(--ink);font-weight:500;transition:background-color .12s;
+}
+.nav-menu button.nav-link:hover{background:var(--blueprint-soft);color:var(--blueprint)}
+.nav-menu .nav-divider{height:1px;background:rgba(169,184,190,0.5);margin:6px 4px}
+.nav-menu .nav-stats{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 10px}
+.nav-menu .nav-stats .item{display:flex;flex-direction:column;gap:1px}
+.nav-menu .nav-stats dt{font-family:var(--font-mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--graphite);margin:0}
+.nav-menu .nav-stats dd{margin:0;font-family:var(--font-mono);font-size:12.5px;font-weight:500}
+.nav-menu .altview{display:block;padding:8px 10px 4px}
 .altview{
   font-family:var(--font-mono);font-size:11px;color:var(--blueprint);
   text-decoration:none;border-bottom:1px dotted var(--blueprint);white-space:nowrap;
@@ -338,19 +358,31 @@ footer{border-top:1px solid var(--line-strong);padding-top:24px;display:flex;fle
         <span class="tag">Surface Operations Network</span>
       </div>
     </div>
-    <nav class="topnav" id="topnav">
-      <button data-goto="events">Events</button>
-      <button data-goto="feeds">Feeds</button>
-      <button data-goto="telemetry">Telemetry</button>
-      <button data-goto="how-it-works">How it works</button>
-      <button data-goto="facts">Facts</button>
-    </nav>
-    <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">
-      <dl class="stat-strip">
-        <div class="item"><dt>UTC</dt><dd id="utcClock">00:00:00</dd></div>
-        <div class="item"><dt>Feeds live</dt><dd id="feedsLive">0 / 12</dd></div>
-      </dl>
-      <a class="altview" href="../">Standard build →</a>
+    <div class="nav-wrap">
+      <button class="nav-trigger" id="navTrigger" aria-expanded="false" aria-controls="navMenu" aria-label="Open menu">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true">
+          <circle cx="10" cy="10" r="8"></circle>
+          <ellipse cx="10" cy="10" rx="3.3" ry="8"></ellipse>
+          <path d="M2.4 10 H17.6"></path>
+          <path d="M3.4 5.6 H16.6"></path>
+          <path d="M3.4 14.4 H16.6"></path>
+        </svg>
+        <span class="lbl">Menu</span>
+      </button>
+      <div class="nav-menu" id="navMenu" role="menu">
+        <button class="nav-link" data-goto="events" role="menuitem">Events</button>
+        <button class="nav-link" data-goto="feeds" role="menuitem">Feeds</button>
+        <button class="nav-link" data-goto="telemetry" role="menuitem">Telemetry</button>
+        <button class="nav-link" data-goto="how-it-works" role="menuitem">How it works</button>
+        <button class="nav-link" data-goto="facts" role="menuitem">Facts</button>
+        <div class="nav-divider"></div>
+        <dl class="nav-stats">
+          <div class="item"><dt>UTC</dt><dd id="utcClock">00:00:00</dd></div>
+          <div class="item"><dt>Feeds live</dt><dd id="feedsLive">0 / 12</dd></div>
+        </dl>
+        <div class="nav-divider"></div>
+        <a class="altview" href="../">Standard build →</a>
+      </div>
     </div>
   </div>
 </div>
