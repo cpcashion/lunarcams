@@ -182,28 +182,6 @@ function downloadIcs(ev) {
   URL.revokeObjectURL(url);
 }
 
-// ---------- lunar disc projection (shared by grid lines + crosshair) ----------
-const DISC_R = 46, DISC_CX = 50, DISC_CY = 50;
-function projectLatLon(lat, lon) {
-  const latR = (lat * Math.PI) / 180, lonR = (lon * Math.PI) / 180;
-  return {
-    x: DISC_CX + DISC_R * Math.cos(latR) * Math.sin(lonR),
-    y: DISC_CY - DISC_R * Math.sin(latR),
-  };
-}
-function unproject(px, py) {
-  const dx = Math.max(-1, Math.min(1, (px - DISC_CX) / DISC_R));
-  const dy = Math.max(-1, Math.min(1, (py - DISC_CY) / DISC_R));
-  const lat = Math.asin(Math.max(-1, Math.min(1, -dy))) * (180 / Math.PI);
-  const coslat = Math.max(0.0001, Math.cos((lat * Math.PI) / 180));
-  const lon = Math.asin(Math.max(-1, Math.min(1, dx / coslat))) * (180 / Math.PI);
-  return { lat, lon };
-}
-function fmtCoord(lat, lon) {
-  const ns = lat >= 0 ? `N` : `S`, ew = lon >= 0 ? `E` : `W`;
-  return `${Math.abs(lat).toFixed(1)}° ${ns}  ${Math.abs(lon).toFixed(1)}° ${ew}`;
-}
-
 // ---------- state ----------
 let activeCameraId = LOCATIONS[0].id;
 let moonEvents = [];
@@ -244,103 +222,39 @@ document.getElementById(`feedsLive`).textContent = `${liveCount} / ${LOCATIONS.l
 document.getElementById(`tileCameras`).textContent = String(LOCATIONS.length);
 document.getElementById(`footStat`).textContent = `${liveCount} feeds live · ${LOCATIONS.length} cameras deployed`;
 
-// ---------- chart disc: grid lines + site markers + crosshair ----------
-const chartGrat = document.getElementById(`chartGrat`);
-const chartSites = document.getElementById(`chartSites`);
-function buildGraticule() {
-  const lats = [-60, -30, 0, 30, 60];
-  const lons = [-90, -60, -30, 0, 30, 60, 90];
-  const frag = document.createDocumentFragment();
-  for (const lat of lats) {
-    const pts = [];
-    for (let lon = -90; lon <= 90; lon += 5) { const p = projectLatLon(lat, lon); pts.push(`${p.x.toFixed(2)},${p.y.toFixed(2)}`); }
-    const pl = document.createElementNS(`http://www.w3.org/2000/svg`, `polyline`);
-    pl.setAttribute(`points`, pts.join(` `));
-    pl.setAttribute(`class`, `chart-grat`);
-    frag.appendChild(pl);
+// ---------- hero: embedded 3D blueprint globe ----------
+let heroGlobe = null;
+function mountHeroGlobe() {
+  const host = document.getElementById(`heroGlobeHost`);
+  const status = document.getElementById(`heroGlobeStatus`);
+  import(`../assets/moon-globe.js`).then((mod) => {
+    heroGlobe = mod.mountMoonGlobe(host, {
+      locations: LOCATIONS.map((c) => ({ id: c.id, name: c.name, lat: c.lat, lon: c.lon })),
+      blueprint: true,
+      activeId: activeCameraId,
+      accentHex: 0xb8792e,
+      autoRotate: !reduced(),
+      onReady: () => { status.style.display = `none`; },
+      onError: () => { status.textContent = `The 3D surface plot couldn't load in this browser.`; },
+      onHoverLocation: (loc) => showHeroHover(loc),
+      onSelectLocation: (loc) => setActiveCamera(loc.id, true),
+    });
+  }).catch(() => { status.textContent = `The 3D surface plot couldn't load in this browser.`; });
+}
+function showHeroHover(loc) {
+  let el = document.getElementById(`heroGlobeHover`);
+  if (!loc) { el?.remove(); return; }
+  if (!el) {
+    el = document.createElement(`div`); el.id = `heroGlobeHover`; el.className = `hero-globe-hover`;
+    document.getElementById(`heroGlobe`).appendChild(el);
   }
-  for (const lon of lons) {
-    const pts = [];
-    for (let lat = -90; lat <= 90; lat += 5) { const p = projectLatLon(lat, lon); pts.push(`${p.x.toFixed(2)},${p.y.toFixed(2)}`); }
-    const pl = document.createElementNS(`http://www.w3.org/2000/svg`, `polyline`);
-    pl.setAttribute(`points`, pts.join(` `));
-    pl.setAttribute(`class`, `chart-grat`);
-    frag.appendChild(pl);
-  }
-  chartGrat.appendChild(frag);
+  el.textContent = loc.name;
 }
-function buildSiteDots() {
-  chartSites.innerHTML = ``;
-  for (const cam of LOCATIONS) {
-    const p = projectLatLon(cam.lat, cam.lon);
-    const dot = document.createElementNS(`http://www.w3.org/2000/svg`, `circle`);
-    dot.setAttribute(`cx`, p.x.toFixed(2));
-    dot.setAttribute(`cy`, p.y.toFixed(2));
-    dot.setAttribute(`r`, `2.6`);
-    dot.setAttribute(`class`, `site-dot${cam.status === `live` ? ` is-live` : ``}${cam.id === activeCameraId ? ` is-active` : ``}`);
-    dot.dataset.id = cam.id;
-    dot.style.cursor = `pointer`;
-    chartSites.appendChild(dot);
-  }
-}
-buildGraticule();
-buildSiteDots();
-
-const chartSurface = document.getElementById(`chartSurface`);
-const crosshairGroup = document.getElementById(`crosshairGroup`);
-const chLineV = document.getElementById(`chLineV`);
-const chLineH = document.getElementById(`chLineH`);
-const chartReadout = document.getElementById(`chartReadout`);
-let nearSiteId = null;
-
-function pointerToPercent(evt) {
-  const rect = chartSurface.getBoundingClientRect();
-  return { px: ((evt.clientX - rect.left) / rect.width) * 100, py: ((evt.clientY - rect.top) / rect.height) * 100 };
-}
-function updateNearestHighlight(px, py) {
-  let best = null, bestDist = Infinity;
-  for (const cam of LOCATIONS) {
-    const p = projectLatLon(cam.lat, cam.lon);
-    const dist = Math.hypot(p.x - px, p.y - py);
-    if (dist < bestDist) { bestDist = dist; best = cam; }
-  }
-  const near = bestDist < 6 ? best : null;
-  if (near?.id !== nearSiteId) {
-    nearSiteId = near?.id || null;
-    chartSites.querySelectorAll(`.site-dot`).forEach((el) => el.classList.toggle(`is-near`, el.dataset.id === nearSiteId));
-  }
-  return near;
-}
-function onChartMove(evt) {
-  const { px, py } = pointerToPercent(evt);
-  const dist = Math.hypot(px - DISC_CX, py - DISC_CY);
-  if (dist > DISC_R + 1) { onChartLeave(); return; }
-  const { lat, lon } = unproject(px, py);
-  const near = updateNearestHighlight(px, py);
-  crosshairGroup.classList.add(`show`);
-  chLineV.setAttribute(`x1`, px.toFixed(2)); chLineV.setAttribute(`x2`, px.toFixed(2));
-  chLineH.setAttribute(`y1`, py.toFixed(2)); chLineH.setAttribute(`y2`, py.toFixed(2));
-  chartReadout.textContent = near ? `${fmtCoord(lat, lon)} — ${near.name}` : fmtCoord(lat, lon);
-  chartReadout.classList.add(`show`);
-  chartReadout.style.left = `${(px / 100) * chartSurface.clientWidth}px`;
-  chartReadout.style.top = `${(py / 100) * chartSurface.clientHeight}px`;
-}
-function onChartLeave() {
-  crosshairGroup.classList.remove(`show`);
-  chartReadout.classList.remove(`show`);
-  if (nearSiteId) { nearSiteId = null; chartSites.querySelectorAll(`.site-dot`).forEach((el) => el.classList.remove(`is-near`)); }
-}
-chartSurface.addEventListener(`pointermove`, onChartMove);
-chartSurface.addEventListener(`pointerleave`, onChartLeave);
-chartSurface.addEventListener(`click`, (evt) => {
-  const { px, py } = pointerToPercent(evt);
-  const near = updateNearestHighlight(px, py);
-  if (near) setActiveCamera(near.id, true);
-});
 
 function setActiveCamera(id, scrollToCard) {
   activeCameraId = id;
-  buildSiteDots();
+  heroGlobe?.setActive(id);
+  globeInstance?.setActive(id);
   renderBank();
   if (scrollToCard) {
     goto(`feeds`);
@@ -444,7 +358,7 @@ function renderIndexGrid() {
   const list = feedFilter === `all` ? LOCATIONS : LOCATIONS.filter((c) => c.status === feedFilter);
   el.innerHTML = list.map((cam) => {
     const ns = cam.lat >= 0 ? `N` : `S`, ew = cam.lon >= 0 ? `E` : `W`;
-    return `<button class="index-card" data-card-id="${cam.id}">
+    return `<button class="index-card glass" data-card-id="${cam.id}">
       <div class="row1"><span class="region">${cam.region}</span><span class="status-dot ${cam.status}"></span></div>
       <span class="site-name">${cam.name}</span>
       <span class="coord">${Math.abs(cam.lat).toFixed(1)}° ${ns}, ${Math.abs(cam.lon).toFixed(1)}° ${ew}</span>
@@ -469,7 +383,7 @@ function renderBank() {
     { label: `Downlink`, value: t.downlink, unit: `Mbps`, warn: false },
     { label: `Signal`, value: t.signal, unit: `dBm`, warn: t.signal < cam.signalBase - 3 },
   ];
-  document.getElementById(`bank`).innerHTML = gauges.map((g) => `<div class="gauge"><dt>${g.label}</dt><dd>${g.value}<span> ${g.unit}</span></dd></div>`).join(``);
+  document.getElementById(`bank`).innerHTML = gauges.map((g) => `<div class="gauge glass"><dt>${g.label}</dt><dd>${g.value}<span> ${g.unit}</span></dd></div>`).join(``);
 }
 
 // ---------- facts (marginalia) ----------
@@ -575,7 +489,7 @@ function openGlobeModal() {
       <div class="modal-head"><h3>Plot the surface — 3D lunar explorer</h3><button class="modal-close" id="globeClose" aria-label="Close">✕</button></div>
       <div class="globe-body">
         <div class="globe-canvas-host" id="globeHost"></div>
-        <div class="globe-status" id="globeStatus">Loading the lunar surface…</div>
+        <div class="globe-status" id="globeStatus">Drafting the surface…</div>
       </div>
     </div>
   </div>`;
@@ -586,9 +500,10 @@ function openGlobeModal() {
   import(`../assets/moon-globe.js`).then((mod) => {
     globeInstance = mod.mountMoonGlobe(host, {
       locations: LOCATIONS.map((c) => ({ id: c.id, name: c.name, lat: c.lat, lon: c.lon })),
-      textureUrl: `../assets/moon-texture-2k.jpg`,
+      blueprint: true,
       activeId: activeCameraId,
       accentHex: 0xb8792e,
+      autoRotate: !reduced(),
       onReady: () => { status.style.display = `none`; },
       onError: () => { status.textContent = `The 3D explorer couldn't load in this browser.`; },
       onHoverLocation: (loc) => { showGlobeHover(loc); },
@@ -633,6 +548,7 @@ renderEventsLog();
 renderFilters();
 renderIndexGrid();
 renderBank();
+mountHeroGlobe();
 setInterval(() => { renderHero(); renderEventsLog(); }, 1000);
 setInterval(() => { tickTelemetry(); renderBank(); }, 1400);
 
