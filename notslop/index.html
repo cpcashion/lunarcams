@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>LunarCams — Lunar Cartography Desk</title>
+<meta name="description" content="An alternate LunarCams build: a lunar cartographer's instrument desk. Real mission countdowns, camera plots, and NASA imagery, drafted in paper and blueprint ink.">
+<meta name="theme-color" content="#F4F6F5">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F4F6F5;
+  --paper-raised:#FFFFFF;
+  --ink:#1B2430;
+  --blueprint:#1E5A8C;
+  --blueprint-soft:#E4ECF1;
+  --brass:#B8792E;
+  --brass-soft:#F3E3CC;
+  --signal:#A6301F;
+  --graphite:#5B6570;
+  --line:#CBD5D9;
+  --line-strong:#A9B8BE;
+  --font-display:'Big Shoulders Display',sans-serif;
+  --font-body:'Source Serif 4',Georgia,serif;
+  --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+  --radius:7px;
+  color-scheme: light;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  background:var(--paper);
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size:34px 34px;
+  background-position:-1px -1px;
+  color:var(--ink);
+  font-family:var(--font-body);
+  font-size:16px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:inherit}
+button{font:inherit;color:inherit}
+img{max-width:100%;display:block}
+:focus-visible{outline:2px solid var(--blueprint);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:0.001ms !important;animation-iteration-count:1 !important;transition-duration:0.001ms !important;scroll-behavior:auto !important}
+}
+
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+
+/* ---------- header ---------- */
+.topbar{
+  border-bottom:1px solid var(--line-strong);
+  background:rgba(255,255,255,0.6);
+  backdrop-filter:blur(6px);
+  position:sticky;top:0;z-index:40;
+}
+.topbar-row{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding-block:14px;flex-wrap:wrap;
+}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-mark{
+  width:34px;height:34px;border:1.5px solid var(--ink);border-radius:50%;
+  display:grid;place-items:center;position:relative;flex-shrink:0;
+}
+.brand-mark::before{content:'';position:absolute;inset:6px;border:1px solid var(--brass);border-radius:50%}
+.brand-mark::after{content:'';position:absolute;width:2px;height:10px;background:var(--brass);top:-2px;left:50%;transform:translateX(-50%)}
+.brand-text{display:flex;flex-direction:column;line-height:1.15}
+.brand-text .name{font-family:var(--font-display);font-weight:700;font-size:19px;letter-spacing:0.01em}
+.brand-text .tag{font-family:var(--font-mono);font-size:10.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--graphite)}
+.topnav{display:flex;align-items:center;gap:2px;flex-wrap:wrap}
+.topnav button{
+  background:none;border:none;cursor:pointer;padding:7px 11px;border-radius:5px;
+  font-size:13px;color:var(--graphite);font-weight:500;transition:background-color .15s,color .15s;
+}
+.topnav button:hover{background:var(--blueprint-soft);color:var(--blueprint)}
+.stat-strip{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.stat-strip .item{display:flex;flex-direction:column;gap:1px}
+.stat-strip dt{font-family:var(--font-mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--graphite)}
+.stat-strip dd{margin:0;font-family:var(--font-mono);font-size:13px;font-weight:500}
+.altview{
+  font-family:var(--font-mono);font-size:11px;color:var(--blueprint);
+  text-decoration:none;border-bottom:1px dotted var(--blueprint);white-space:nowrap;
+}
+.altview:hover{color:var(--signal);border-color:var(--signal)}
+
+/* ---------- hero / chart sheet ---------- */
+.hero{padding-block:36px 44px}
+.sheet{
+  display:grid;grid-template-columns:1.1fr 0.9fr;gap:0;
+  background:var(--paper-raised);
+  border:1px solid var(--line-strong);
+  border-radius:var(--radius);
+  overflow:hidden;
+}
+@media (max-width:860px){.sheet{grid-template-columns:1fr}}
+
+.chart-surface{
+  position:relative;aspect-ratio:1/1;background:radial-gradient(circle at 50% 50%, #FBFCFB 0%, #EFF3F2 72%, #E4EAE9 100%);
+  border-right:1px solid var(--line-strong);cursor:crosshair;touch-action:none;
+  overflow:hidden;
+}
+@media (max-width:860px){.chart-surface{border-right:none;border-bottom:1px solid var(--line-strong)}}
+.chart-surface svg{position:absolute;inset:0;width:100%;height:100%}
+.chart-disc{stroke:var(--line-strong);fill:none}
+.chart-grat{stroke:var(--line);fill:none;stroke-width:1}
+.chart-limb{stroke:var(--ink);fill:none;stroke-width:1.3}
+.site-dot{fill:var(--blueprint);stroke:var(--paper-raised);stroke-width:1.5;transition:r .12s,fill .12s}
+.site-dot.is-live{fill:var(--brass)}
+.site-dot.is-active{stroke:var(--signal);stroke-width:2.2}
+.site-dot.is-near{r:5;fill:var(--signal)}
+.crosshair-group{pointer-events:none;opacity:0;transition:opacity .1s}
+.crosshair-group.show{opacity:1}
+.crosshair-line{stroke:var(--signal);stroke-width:1}
+.chart-readout{
+  position:absolute;pointer-events:none;transform:translate(10px,10px);
+  font-family:var(--font-mono);font-size:11px;background:var(--paper-raised);
+  border:1px solid var(--ink);padding:3px 7px;border-radius:3px;white-space:nowrap;
+  opacity:0;transition:opacity .1s;
+}
+.chart-readout.show{opacity:1}
+.chart-hint{
+  position:absolute;left:14px;bottom:12px;font-family:var(--font-mono);font-size:10px;
+  letter-spacing:0.06em;color:var(--graphite);text-transform:uppercase;
+}
+
+.sheet-info{padding:26px 28px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.title-block{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sheet-no{font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;color:var(--graphite);border:1px solid var(--line-strong);padding:3px 8px;border-radius:3px}
+.badge{
+  display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:11px;
+  padding:3px 9px;border-radius:3px;border:1px solid var(--brass);color:var(--brass);white-space:nowrap;
+}
+.badge.live{border-color:var(--signal);color:var(--signal)}
+.badge .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.badge.live .dot{animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+.agency-line{font-family:var(--font-mono);font-size:12px;color:var(--graphite)}
+
+h1.headline{
+  font-family:var(--font-display);font-weight:800;font-size:clamp(28px,4vw,42px);
+  line-height:1.02;margin:0;letter-spacing:-0.01em;
+}
+.desc{margin:0;max-width:52ch;color:var(--graphite);font-size:15px}
+
+.chrono{display:flex;align-items:flex-end;gap:14px;padding-top:2px}
+.chrono .cell{display:flex;flex-direction:column;align-items:center;gap:2px}
+.chrono .num{font-family:var(--font-mono);font-weight:600;font-size:clamp(24px,3vw,32px);line-height:1;font-variant-numeric:tabular-nums}
+.chrono .lbl{font-family:var(--font-mono);font-size:9.5px;letter-spacing:0.1em;color:var(--graphite);text-transform:uppercase}
+.chrono .sep{font-family:var(--font-mono);font-size:20px;color:var(--line-strong);padding-bottom:16px}
+.underway{display:flex;align-items:center;gap:8px;font-family:var(--font-display);font-weight:700;font-size:22px;color:var(--signal)}
+.underway .dot{width:8px;height:8px;border-radius:50%;background:var(--signal);animation:pulse 1.4s ease-in-out infinite}
+
+.cta-row{display:flex;flex-wrap:wrap;gap:10px;padding-top:4px}
+.btn{
+  display:inline-flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;
+  padding:9px 15px;border-radius:5px;cursor:pointer;transition:filter .15s,transform .1s;
+  text-decoration:none;
+}
+.btn:active{transform:scale(0.98)}
+.btn-primary{background:var(--brass);color:#fff;border:1px solid var(--brass)}
+.btn-primary:hover{filter:brightness(1.06)}
+.btn-primary[disabled]{opacity:.5;cursor:not-allowed}
+.btn-ghost{background:transparent;border:1px solid var(--line-strong);color:var(--ink)}
+.btn-ghost:hover{background:var(--blueprint-soft);border-color:var(--blueprint)}
+
+.tile-row{display:flex;border:1px solid var(--line-strong);border-radius:5px;overflow:hidden;margin-top:6px;width:fit-content;max-width:100%}
+.tile{padding:9px 15px;display:flex;flex-direction:column;gap:1px}
+.tile+.tile{border-left:1px solid var(--line-strong)}
+.tile dt{font-family:var(--font-mono);font-size:9px;letter-spacing:0.09em;color:var(--graphite);text-transform:uppercase}
+.tile dd{margin:0;font-family:var(--font-mono);font-weight:600;font-size:15px}
+
+/* ---------- sections ---------- */
+main{display:flex;flex-direction:column;gap:52px;padding-bottom:60px}
+section{scroll-margin-top:70px}
+.sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;border-bottom:1px solid var(--line-strong);padding-bottom:10px;margin-bottom:20px;flex-wrap:wrap}
+.eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--blueprint);white-space:nowrap}
+.sec-title{font-family:var(--font-display);font-weight:700;font-size:23px;margin:2px 0 0}
+.sec-note{font-size:13.5px;color:var(--graphite);max-width:44ch;margin:0}
+.sec-titlewrap{display:flex;flex-direction:column;gap:2px}
+
+/* flight log */
+.log{display:flex;flex-direction:column}
+.log-row{
+  display:grid;grid-template-columns:64px 1fr auto;gap:16px;align-items:start;
+  padding:16px 0;border-bottom:1px solid var(--line);
+}
+.log-row:first-child{padding-top:0}
+.log-idx{font-family:var(--font-mono);font-size:12px;color:var(--graphite);padding-top:3px}
+.log-main{min-width:0}
+.log-name{font-family:var(--font-display);font-weight:700;font-size:18px;margin:0 0 3px}
+.log-meta{font-family:var(--font-mono);font-size:11.5px;color:var(--graphite);margin:0 0 6px}
+.log-desc{font-size:13.5px;color:var(--ink);margin:0;max-width:60ch}
+.log-side{display:flex;flex-direction:column;align-items:flex-end;gap:8px;text-align:right}
+.log-status{font-family:var(--font-mono);font-size:11px;padding:2px 8px;border-radius:3px;border:1px solid var(--line-strong);white-space:nowrap}
+.log-status.live{border-color:var(--signal);color:var(--signal)}
+.log-status.soon{border-color:var(--brass);color:var(--brass)}
+.log-cal{font-family:var(--font-mono);font-size:11px;color:var(--blueprint);background:none;border:none;cursor:pointer;text-decoration:underline;text-underline-offset:2px;padding:0}
+@media (max-width:640px){.log-row{grid-template-columns:40px 1fr}.log-side{grid-column:1/-1;flex-direction:row;justify-content:space-between;align-items:center;padding-left:56px}}
+
+/* chart index / camera grid */
+.filters{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
+.filter-pill{
+  font-family:var(--font-mono);font-size:11.5px;padding:5px 11px;border-radius:14px;
+  border:1px solid var(--line-strong);background:transparent;cursor:pointer;color:var(--graphite);
+}
+.filter-pill[aria-pressed="true"]{background:var(--blueprint);border-color:var(--blueprint);color:#fff}
+.index-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:1px;background:var(--line-strong);border:1px solid var(--line-strong);border-radius:var(--radius);overflow:hidden}
+.index-card{background:var(--paper-raised);padding:16px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:8px;border:none;transition:background-color .12s}
+.index-card:hover{background:var(--blueprint-soft)}
+.index-card .row1{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.index-card .region{font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--graphite)}
+.index-card .status-dot{width:7px;height:7px;border-radius:50%;background:var(--line-strong);flex-shrink:0}
+.index-card .status-dot.live{background:var(--brass)}
+.index-card .status-dot.standby{background:var(--graphite)}
+.index-card .status-dot.sun-glare{background:var(--signal)}
+.index-card .site-name{font-family:var(--font-display);font-weight:700;font-size:18px}
+.index-card .coord{font-family:var(--font-mono);font-size:11.5px;color:var(--blueprint)}
+.index-card .specs{font-family:var(--font-mono);font-size:10.5px;color:var(--graphite)}
+
+/* explore 3d banner */
+.plot-banner{
+  display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;
+  border:1px solid var(--line-strong);border-radius:var(--radius);padding:20px 22px;
+  background:linear-gradient(135deg,var(--blueprint-soft),var(--paper-raised));
+}
+.plot-banner h3{font-family:var(--font-display);font-weight:700;font-size:20px;margin:0 0 4px}
+.plot-banner p{margin:0;font-size:13.5px;color:var(--graphite);max-width:44ch}
+
+/* instrument bank */
+.bank{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line-strong);border-radius:var(--radius);overflow:hidden}
+@media (max-width:640px){.bank{grid-template-columns:repeat(2,1fr)}}
+.gauge{padding:16px;border-left:1px solid var(--line-strong)}
+.gauge:first-child{border-left:none}
+@media (max-width:640px){.gauge:nth-child(2n+1){border-left:none}.gauge:nth-child(n+3){border-top:1px solid var(--line-strong)}}
+.gauge dt{font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--graphite);margin-bottom:6px}
+.gauge dd{margin:0;font-family:var(--font-mono);font-weight:600;font-size:22px}
+.gauge dd span{font-size:12px;color:var(--graphite);font-weight:400}
+
+/* field notes (how it works) */
+.notes{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line-strong);border:1px solid var(--line-strong);border-radius:var(--radius);overflow:hidden}
+@media (max-width:760px){.notes{grid-template-columns:1fr}}
+.note{background:var(--paper-raised);padding:18px}
+.note .step{font-family:var(--font-mono);font-size:10.5px;color:var(--brass);letter-spacing:0.08em}
+.note h4{font-family:var(--font-display);font-weight:700;font-size:16px;margin:8px 0 6px}
+.note p{margin:0;font-size:13px;color:var(--graphite)}
+
+/* marginalia (facts) */
+.margin-card{border:1px solid var(--line-strong);border-radius:var(--radius);padding:20px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;background:var(--paper-raised)}
+.margin-text{font-size:15px;max-width:56ch}
+.margin-text .detail{display:block;font-size:12.5px;color:var(--graphite);margin-top:5px}
+.margin-nav{display:flex;gap:6px;flex-shrink:0}
+.margin-nav button{width:28px;height:28px;border:1px solid var(--line-strong);background:transparent;border-radius:50%;cursor:pointer;font-family:var(--font-mono)}
+.margin-nav button:hover{background:var(--blueprint-soft)}
+
+/* footer */
+footer{border-top:1px solid var(--line-strong);padding-top:24px;display:flex;flex-direction:column;gap:16px}
+.foot-row{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.foot-brand{display:flex;flex-direction:column}
+.foot-brand .name{font-family:var(--font-display);font-weight:700;font-size:15px}
+.foot-brand .sub{font-family:var(--font-mono);font-size:11.5px;color:var(--graphite)}
+.foot-status{display:flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:11.5px;color:var(--graphite)}
+.foot-status .dot{width:6px;height:6px;border-radius:50%;background:var(--brass)}
+.dsn-label{font-family:var(--font-mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--graphite)}
+.dsn-grid{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line-strong);border-radius:5px;overflow:hidden}
+@media (max-width:640px){.dsn-grid{grid-template-columns:1fr}}
+.dsn-cell{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;border-left:1px solid var(--line-strong);background:var(--paper-raised)}
+.dsn-cell:first-child{border-left:none}
+@media (max-width:640px){.dsn-cell{border-left:none;border-top:1px solid var(--line-strong)}.dsn-cell:first-child{border-top:none}}
+.dsn-cell .n{font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px}
+.dsn-cell .n .dot{width:6px;height:6px;border-radius:50%}
+.dsn-cell .s{font-family:var(--font-mono);font-size:10.5px;color:var(--graphite)}
+.legal{font-size:12px;color:var(--graphite);max-width:80ch}
+.build-note{font-family:var(--font-mono);font-size:11px;color:var(--graphite)}
+.back-top{align-self:flex-start;font-family:var(--font-mono);font-size:11.5px;background:none;border:1px solid var(--line-strong);border-radius:5px;padding:6px 12px;cursor:pointer}
+.back-top:hover{background:var(--blueprint-soft)}
+
+/* ---------- modal shared ---------- */
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(27,36,48,0.55);z-index:100;
+  display:flex;align-items:center;justify-content:center;padding:20px;
+}
+.modal-panel{
+  background:var(--paper-raised);border-radius:var(--radius);border:1px solid var(--line-strong);
+  width:100%;max-width:960px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;
+}
+.modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line-strong)}
+.modal-head h3{font-family:var(--font-display);font-weight:700;font-size:17px;margin:0}
+.modal-close{background:none;border:1px solid var(--line-strong);border-radius:5px;width:30px;height:30px;cursor:pointer;font-size:15px;line-height:1}
+.modal-close:hover{background:var(--blueprint-soft)}
+
+/* gallery */
+.gal-stage{position:relative;background:#10161d;aspect-ratio:16/10;overflow:hidden;touch-action:none;flex-shrink:0}
+.gal-track{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.gal-track img{max-width:100%;max-height:100%;object-fit:contain;user-select:none;-webkit-user-drag:none}
+.gal-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.9);border:none;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:16px;display:grid;place-items:center}
+.gal-nav:hover{background:#fff}
+.gal-prev{left:12px}.gal-next{right:12px}
+.gal-caption{padding:12px 18px;border-bottom:1px solid var(--line-strong)}
+.gal-caption .t{font-family:var(--font-display);font-weight:700;font-size:15px;margin:0}
+.gal-caption .c{font-family:var(--font-mono);font-size:11px;color:var(--graphite);margin:2px 0 0}
+.gal-strip{display:flex;gap:6px;padding:12px;overflow-x:auto}
+.gal-thumb{width:56px;height:40px;flex-shrink:0;border-radius:4px;overflow:hidden;border:2px solid transparent;cursor:pointer;background:#10161d}
+.gal-thumb.active{border-color:var(--brass)}
+.gal-thumb img{width:100%;height:100%;object-fit:cover}
+.gal-status{padding:40px;text-align:center;font-family:var(--font-mono);font-size:13px;color:var(--graphite)}
+
+/* globe */
+.globe-body{position:relative;flex:1;min-height:420px;background:linear-gradient(180deg,#EFF3F2,#E4EAE9)}
+.globe-canvas-host{position:absolute;inset:0}
+.globe-status{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:13px;color:var(--graphite);text-align:center;padding:20px}
+.globe-info{position:absolute;left:16px;bottom:16px;right:16px;background:var(--paper-raised);border:1px solid var(--line-strong);border-radius:6px;padding:14px 16px;display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.globe-info h4{font-family:var(--font-display);font-weight:700;font-size:16px;margin:0 0 3px}
+.globe-info .coord{font-family:var(--font-mono);font-size:11.5px;color:var(--blueprint)}
+.globe-actions{display:flex;gap:8px}
+.globe-hover{position:absolute;top:16px;left:16px;font-family:var(--font-mono);font-size:11px;background:var(--paper-raised);border:1px solid var(--line-strong);padding:5px 10px;border-radius:4px;pointer-events:none}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="wrap topbar-row">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <div class="brand-text">
+        <span class="name" translate="no">LunarCams</span>
+        <span class="tag">Surface Operations Network</span>
+      </div>
+    </div>
+    <nav class="topnav" id="topnav">
+      <button data-goto="events">Events</button>
+      <button data-goto="feeds">Feeds</button>
+      <button data-goto="telemetry">Telemetry</button>
+      <button data-goto="how-it-works">How it works</button>
+      <button data-goto="facts">Facts</button>
+    </nav>
+    <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+      <dl class="stat-strip">
+        <div class="item"><dt>UTC</dt><dd id="utcClock">00:00:00</dd></div>
+        <div class="item"><dt>Feeds live</dt><dd id="feedsLive">0 / 12</dd></div>
+      </dl>
+      <a class="altview" href="../">Standard build →</a>
+    </div>
+  </div>
+</div>
+
+<div class="wrap hero">
+  <div class="sheet">
+    <div class="chart-surface" id="chartSurface" aria-label="Lunar disc plot. Move your pointer over it to read coordinates and nearby camera sites.">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+        <circle class="chart-limb" cx="50" cy="50" r="46"></circle>
+        <g id="chartGrat"></g>
+        <circle class="chart-disc" cx="50" cy="50" r="46" stroke-dasharray="0.5 2"></circle>
+        <g id="chartSites"></g>
+        <g class="crosshair-group" id="crosshairGroup">
+          <line class="crosshair-line" id="chLineV" x1="50" y1="0" x2="50" y2="100"></line>
+          <line class="crosshair-line" id="chLineH" x1="0" y1="50" x2="100" y2="50"></line>
+        </g>
+      </svg>
+      <div class="chart-readout" id="chartReadout"></div>
+      <div class="chart-hint">Plot the surface — move your pointer</div>
+    </div>
+    <div class="sheet-info">
+      <div class="title-block">
+        <span class="sheet-no" id="sheetNo">SHEET NO. —</span>
+        <span class="badge" id="heroBadge"><span class="dot"></span><span id="heroBadgeText">Next event</span></span>
+        <span class="agency-line" id="heroAgency">Checking mission schedules…</span>
+      </div>
+      <h1 class="headline" id="heroHeadline">Tracking the next Moon mission</h1>
+      <p class="desc" id="heroDesc">LunarCams tracks real launches and landing attempts headed for the Moon, sourced live from public spaceflight schedules.</p>
+      <div id="heroCountdownWrap"></div>
+      <div class="cta-row">
+        <a class="btn btn-primary" id="heroWatchBtn" href="https://plus.nasa.gov/" target="_blank" rel="noreferrer noopener" style="display:none">Watch live coverage</a>
+        <button class="btn btn-primary" id="heroCalBtn" disabled>Add to calendar</button>
+        <button class="btn btn-ghost" data-goto="events">All missions</button>
+      </div>
+      <dl class="tile-row">
+        <div class="tile"><dt>Tracked missions</dt><dd id="tileMissions">0</dd></div>
+        <div class="tile"><dt>Camera locations</dt><dd id="tileCameras">12</dd></div>
+        <div class="tile"><dt>Coverage</dt><dd>92%</dd></div>
+      </dl>
+    </div>
+  </div>
+</div>
+
+<main class="wrap">
+
+  <section id="events">
+    <div class="sec-head">
+      <div class="sec-titlewrap">
+        <span class="eyebrow">Mission log</span>
+        <h2 class="sec-title">Upcoming Moon events</h2>
+      </div>
+      <p class="sec-note">Real launch and landing schedules, tracked live from public spaceflight data.</p>
+    </div>
+    <div class="log" id="eventsLog">
+      <p class="gal-status">Loading mission schedules…</p>
+    </div>
+  </section>
+
+  <section id="feeds">
+    <div class="sec-head">
+      <div class="sec-titlewrap">
+        <span class="eyebrow">Chart index</span>
+        <h2 class="sec-title">Live cameras</h2>
+      </div>
+      <p class="sec-note">Tap any site to open its real photo gallery, sourced from the NASA image library.</p>
+    </div>
+    <div class="filters" id="filters"></div>
+    <div class="index-grid" id="indexGrid"></div>
+  </section>
+
+  <section id="plot3d">
+    <div class="plot-banner">
+      <div>
+        <h3>Plot the surface in 3D</h3>
+        <p>A full lunar globe — spin it, zoom into named sites, and jump straight to their galleries.</p>
+      </div>
+      <button class="btn btn-primary" id="openGlobeBtn">Launch explorer</button>
+    </div>
+  </section>
+
+  <section id="telemetry">
+    <div class="sec-head">
+      <div class="sec-titlewrap">
+        <span class="eyebrow">Instrument bank</span>
+        <h2 class="sec-title">Live telemetry</h2>
+      </div>
+      <p class="sec-note" id="telemetryNote">Streaming from — · sampled every 1.4 seconds.</p>
+    </div>
+    <div class="bank" id="bank"></div>
+  </section>
+
+  <section id="how-it-works">
+    <div class="sec-head">
+      <div class="sec-titlewrap">
+        <span class="eyebrow">Field notes</span>
+        <h2 class="sec-title">How it works</h2>
+      </div>
+      <p class="sec-note">From the lunar surface to your screen in three steps.</p>
+    </div>
+    <div class="notes">
+      <div class="note"><span class="step">STEP 1</span><h4>Cameras capture the surface</h4><p>Surface optics and orbital relays image craters, seas, and landing sites continuously as the terminator sweeps across the Moon.</p></div>
+      <div class="note"><span class="step">STEP 2</span><h4>Telemetry rides the downlink</h4><p>Each feed carries its own packet stream - altitude, coordinates, signal strength, and temperature - sampled and relayed every 1.4 seconds.</p></div>
+      <div class="note"><span class="step">STEP 3</span><h4>You watch from the control room</h4><p>Pick any camera and the main feed, radar, and telemetry deck retune to that location instantly. No mission badge required.</p></div>
+    </div>
+  </section>
+
+  <section id="facts">
+    <div class="sec-head">
+      <div class="sec-titlewrap">
+        <span class="eyebrow">Marginalia</span>
+        <h2 class="sec-title">Lunar facts</h2>
+      </div>
+      <p class="sec-note">Cycle through things the Moon is doing while you watch.</p>
+    </div>
+    <div class="margin-card">
+      <div class="margin-text" id="factText"></div>
+      <div class="margin-nav">
+        <button id="factPrev" aria-label="Previous fact">‹</button>
+        <button id="factNext" aria-label="Next fact">›</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="foot-row">
+      <div class="foot-brand">
+        <span class="name" translate="no">LunarCams Network</span>
+        <span class="sub" id="footStat">0 feeds live · 12 cameras deployed</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px">
+        <span class="foot-status"><span class="dot"></span>All systems nominal</span>
+      </div>
+    </div>
+    <span class="dsn-label">Deep Space Network — ground stations</span>
+    <div class="dsn-grid">
+      <div class="dsn-cell"><span class="n"><span class="dot" style="background:var(--brass)"></span>Goldstone</span><span class="s">Tracking</span></div>
+      <div class="dsn-cell"><span class="n"><span class="dot" style="background:var(--brass)"></span>Madrid</span><span class="s">Tracking</span></div>
+      <div class="dsn-cell"><span class="n"><span class="dot" style="background:var(--graphite)"></span>Canberra</span><span class="s">Standby</span></div>
+    </div>
+    <p class="legal">Mission schedules are tracked live from public launch data and may shift as agencies update their plans. Imagery courtesy of NASA / Lunar Reconnaissance Orbiter and Unsplash. Camera telemetry is simulated for demonstration.</p>
+    <p class="build-note">Notslop build — an alternate interface for the same live data. <a href="../" class="altview" style="border-bottom:none">See the standard build →</a></p>
+    <button class="back-top" id="backTop">Back to top ↑</button>
+  </footer>
+</main>
+
+<div id="modalHost"></div>
+
+<script type="module" src="./app.js"></script>
+</body>
+</html>
