@@ -209,8 +209,31 @@ function goto(id) {
   if (!el) return;
   el.scrollIntoView({ behavior: reduced() ? `auto` : `smooth`, block: `start` });
 }
-document.querySelectorAll(`[data-goto]`).forEach((btn) => btn.addEventListener(`click`, () => goto(btn.dataset.goto)));
+document.querySelectorAll(`[data-goto]`).forEach((btn) => btn.addEventListener(`click`, () => { goto(btn.dataset.goto); closeNavMenu(); }));
 document.getElementById(`backTop`).addEventListener(`click`, () => window.scrollTo({ top: 0, behavior: reduced() ? `auto` : `smooth` }));
+
+// ---------- nav menu ----------
+const navTrigger = document.getElementById(`navTrigger`);
+const navMenu = document.getElementById(`navMenu`);
+function openNavMenu() {
+  navMenu.classList.add(`open`);
+  navTrigger.setAttribute(`aria-expanded`, `true`);
+  document.addEventListener(`click`, onNavOutsideClick, true);
+  document.addEventListener(`keydown`, onNavKeydown);
+}
+function closeNavMenu() {
+  navMenu.classList.remove(`open`);
+  navTrigger.setAttribute(`aria-expanded`, `false`);
+  document.removeEventListener(`click`, onNavOutsideClick, true);
+  document.removeEventListener(`keydown`, onNavKeydown);
+}
+function onNavOutsideClick(e) {
+  if (!e.target.closest(`.nav-wrap`)) closeNavMenu();
+}
+function onNavKeydown(e) {
+  if (e.key === `Escape`) closeNavMenu();
+}
+navTrigger.addEventListener(`click`, () => { navMenu.classList.contains(`open`) ? closeNavMenu() : openNavMenu(); });
 
 // ---------- UTC clock ----------
 function tickClock() {
@@ -237,7 +260,7 @@ function mountHeroGlobe() {
       onReady: () => { status.style.display = `none`; },
       onError: () => { status.textContent = `The 3D surface plot couldn't load in this browser.`; },
       onHoverLocation: (loc) => showHeroHover(loc),
-      onSelectLocation: (loc) => setActiveCamera(loc.id, true),
+      onSelectLocation: (loc) => showHeroGlobeInfo(loc),
     });
   }).catch(() => { status.textContent = `The 3D surface plot couldn't load in this browser.`; });
 }
@@ -249,6 +272,23 @@ function showHeroHover(loc) {
     document.getElementById(`heroGlobe`).appendChild(el);
   }
   el.textContent = loc.name;
+}
+function showHeroGlobeInfo(loc) {
+  const host = document.getElementById(`heroGlobe`);
+  const hint = host.querySelector(`.hero-globe-hint`);
+  if (hint) hint.style.display = `none`;
+  let el = document.getElementById(`heroGlobeInfo`);
+  if (!el) { el = document.createElement(`div`); el.id = `heroGlobeInfo`; el.className = `globe-info`; host.appendChild(el); }
+  const ns = loc.lat >= 0 ? `N` : `S`, ew = loc.lon >= 0 ? `E` : `W`;
+  el.innerHTML = `<button class="modal-close" id="heroGlobeInfoClose" aria-label="Close" style="position:absolute;top:8px;right:8px;width:24px;height:24px;font-size:12px;background:rgba(255,255,255,0.7)">✕</button>
+    <div><h4>${loc.name}</h4><span class="coord">${Math.abs(loc.lat).toFixed(1)}° ${ns}, ${Math.abs(loc.lon).toFixed(1)}° ${ew}</span></div>
+    <div class="globe-actions"><button class="btn btn-ghost" id="heroGlobeSetActive">Set active</button><button class="btn btn-primary" id="heroGlobeViewGallery">View gallery</button></div>`;
+  document.getElementById(`heroGlobeInfoClose`).addEventListener(`click`, () => { el.remove(); if (hint) hint.style.display = ``; });
+  document.getElementById(`heroGlobeSetActive`).addEventListener(`click`, () => setActiveCamera(loc.id, false));
+  document.getElementById(`heroGlobeViewGallery`).addEventListener(`click`, () => {
+    const cam = LOCATIONS.find((c) => c.id === loc.id);
+    if (cam) openGallery(cam);
+  });
 }
 
 function setActiveCamera(id, scrollToCard) {
