@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>LunarCams — Windows on the Moon</title>
+<meta name="description" content="Seven windows on the lunar surface. The land is rendered; the sky is real — the actual sun, the actual Earth with today's continents and weather, the actual stars, computed live for this minute.">
+<meta name="theme-color" content="#050609">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<style>
+@font-face{font-family:Fraunces;src:url(./fonts/Fraunces-VAR.woff2) format("woff2");font-style:normal;font-weight:100 900;font-stretch:normal;font-display:swap}
+@font-face{font-family:Fraunces;src:url(./fonts/Fraunces-Italic-VAR.woff2) format("woff2");font-style:italic;font-weight:100 900;font-display:swap}
+@font-face{font-family:Space Grotesk;src:url(./fonts/SpaceGrotesk-VAR.woff2) format("woff2");font-weight:300 700;font-display:swap}
+@font-face{font-family:JetBrains Mono;src:url(./fonts/JetBrainsMono-VAR.woff2) format("woff2");font-weight:100 800;font-display:swap}
+
+:root{
+  --void:#050609;
+  --pane:#0A0C11;
+  --porcelain:#E9E2D4;
+  --mist:#9A947F;
+  --faint:#5E5A4E;
+  --earthlight:#8FBEE3;
+  --earthdeep:#4E7FA8;
+  --brass:#C9A35F;
+  --signal:#E4604C;
+  --line:rgba(233,226,212,0.13);
+  --line-soft:rgba(233,226,212,0.07);
+  --display:'Fraunces',Georgia,serif;
+  --sans:'Space Grotesk',system-ui,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{
+  margin:0;background:var(--void);color:var(--porcelain);
+  font-family:var(--sans);font-size:15.5px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;padding:0}
+input{font:inherit;color:inherit}
+::selection{background:rgba(143,190,227,0.28)}
+:focus-visible{outline:1.5px solid var(--earthlight);outline-offset:2px;border-radius:2px}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important}
+}
+
+.mono{font-family:var(--mono)}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+
+/* ============ header ============ */
+.bar{
+  position:fixed;inset:0 0 auto 0;z-index:60;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:14px 22px;
+  background:linear-gradient(to bottom, rgba(4,5,8,0.82), rgba(4,5,8,0));
+  pointer-events:none;
+}
+.bar>*{pointer-events:auto}
+.wordmark{display:flex;align-items:baseline;gap:10px}
+.wordmark .lc{font-family:var(--display);font-size:19px;letter-spacing:0.02em;font-weight:600}
+.wordmark .fable{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:0.34em;text-transform:uppercase;
+  color:var(--earthlight);border:1px solid rgba(143,190,227,0.35);padding:3px 7px 2px 9px;border-radius:2px;
+}
+.bar-right{display:flex;align-items:center;gap:18px}
+.bar-clock{font-family:var(--mono);font-size:11px;color:var(--mist);letter-spacing:0.08em}
+.bar-nav{display:flex;gap:16px}
+.bar-nav a,.bar-nav button{
+  font-family:var(--mono);font-size:10px;letter-spacing:0.22em;text-transform:uppercase;color:var(--mist);
+  transition:color .2s;
+}
+.bar-nav a:hover,.bar-nav button:hover{color:var(--porcelain)}
+@media (max-width:760px){.bar-nav{display:none}.bar-clock{display:none}}
+
+/* ============ the window ============ */
+.window{position:relative;height:100dvh;min-height:520px;background:#020204;overflow:hidden}
+.window canvas.scene{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab;touch-action:pan-y}
+.window canvas.scene.dragging{cursor:grabbing}
+
+.hud{position:absolute;inset:0;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between}
+.hud>*{pointer-events:auto}
+
+.hud-top{display:flex;align-items:flex-start;justify-content:space-between;padding:74px 26px 0}
+.site-id{max-width:70%}
+.site-id .no{font-family:var(--mono);font-size:10px;letter-spacing:0.3em;color:var(--mist);display:block;margin-bottom:6px}
+.site-id h1{
+  font-family:var(--display);font-weight:480;font-size:clamp(26px,4.4vw,46px);
+  line-height:0.98;margin:0;letter-spacing:0.005em;
+  font-variation-settings:'SOFT' 28;
+  text-shadow:0 2px 30px rgba(0,0,0,0.8);
+}
+.site-id .place{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;color:var(--mist);margin-top:8px;display:block}
+
+.live-tag{display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.live-pill{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--mono);font-size:10px;letter-spacing:0.26em;text-transform:uppercase;
+  padding:7px 12px 6px 14px;border-radius:2px;
+  background:rgba(5,6,9,0.55);border:1px solid var(--line);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+}
+.live-pill .dot{width:6px;height:6px;border-radius:50%;background:var(--signal);animation:pulse 2.2s ease-in-out infinite}
+.live-pill.simulated{color:var(--brass);border-color:rgba(201,163,95,0.4)}
+.live-pill.simulated .dot{background:var(--brass);animation:none}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.25}}
+.hud-actions{display:flex;gap:8px}
+.hud-btn{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mist);
+  padding:6px 10px;border:1px solid var(--line-soft);border-radius:2px;
+  background:rgba(5,6,9,0.4);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  transition:color .2s,border-color .2s;
+}
+.hud-btn:hover{color:var(--porcelain);border-color:var(--line)}
+
+.hud-mid{
+  position:absolute;left:26px;bottom:212px;display:flex;flex-direction:column;gap:3px;max-width:min(430px,70vw);
+  padding:14px 20px 12px 16px;margin:-14px -20px -12px -16px;border-radius:10px;
+  background:radial-gradient(120% 130% at 8% 50%, rgba(3,4,7,0.62), rgba(3,4,7,0.28) 55%, transparent 75%);
+}
+.readout{display:flex;gap:14px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.1em;color:var(--mist);text-shadow:0 1px 6px rgba(0,0,0,0.95),0 0 18px rgba(0,0,0,0.8)}
+.readout b{color:var(--porcelain);font-weight:500;min-width:74px;display:inline-block}
+.state-line{
+  font-family:var(--display);font-style:italic;font-weight:430;font-size:clamp(15px,2vw,19px);
+  color:rgba(233,226,212,0.86);margin-top:10px;text-shadow:0 1px 18px rgba(0,0,0,0.9);
+}
+
+.hud-bottom{padding:0 22px 18px;display:flex;flex-direction:column;gap:14px}
+
+/* time machine */
+.timebar{display:flex;align-items:center;gap:14px;max-width:760px;margin:0 auto;width:100%}
+.time-chip{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mist);
+  padding:6px 9px;border:1px solid var(--line-soft);border-radius:2px;white-space:nowrap;
+  background:rgba(5,6,9,0.45);transition:color .2s,border-color .2s;
+}
+.time-chip:hover{color:var(--porcelain);border-color:var(--line)}
+.time-chip.live-btn{color:var(--signal);border-color:rgba(228,96,76,0.35)}
+.time-chip.live-btn:hover{color:#ff8a76}
+.scrub-wrap{flex:1;position:relative;height:26px;display:flex;align-items:center}
+.scrub{
+  -webkit-appearance:none;appearance:none;width:100%;height:26px;background:transparent;margin:0;cursor:ew-resize;
+}
+.scrub::-webkit-slider-runnable-track{height:1px;background:linear-gradient(90deg,transparent,var(--line) 12%,var(--line) 88%,transparent)}
+.scrub::-webkit-slider-thumb{
+  -webkit-appearance:none;width:3px;height:16px;margin-top:-7.5px;border-radius:1px;
+  background:var(--porcelain);box-shadow:0 0 12px rgba(233,226,212,0.6);
+}
+.scrub::-moz-range-track{height:1px;background:var(--line)}
+.scrub::-moz-range-thumb{width:3px;height:16px;border:none;border-radius:1px;background:var(--porcelain)}
+.scrub-zero{position:absolute;left:50%;top:6px;bottom:6px;width:1px;background:rgba(228,96,76,0.5);pointer-events:none}
+.scrub-label{
+  position:absolute;top:-16px;left:50%;transform:translateX(-50%);
+  font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;color:var(--brass);white-space:nowrap;pointer-events:none;
+}
+@media (max-width:640px){.timebar .time-chip.ev{display:none}}
+
+/* dock */
+.dock{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:none}
+.dock::-webkit-scrollbar{display:none}
+.dock-card:first-child{margin-left:auto}
+.dock-card:last-child{margin-right:auto}
+.dock-card{
+  position:relative;flex:0 0 auto;width:132px;border:1px solid var(--line-soft);border-radius:3px;overflow:hidden;
+  background:#050608;text-align:left;transition:border-color .25s,transform .25s;
+}
+.dock-card:hover{border-color:var(--line);transform:translateY(-2px)}
+.dock-card.active{border-color:rgba(143,190,227,0.55)}
+.dock-card canvas{display:block;width:100%;height:58px}
+.dock-card .dc-name{
+  display:block;font-family:var(--sans);font-weight:500;font-size:11px;letter-spacing:0.01em;
+  padding:6px 8px 1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.dock-card .dc-state{
+  display:block;font-family:var(--mono);font-size:8.5px;letter-spacing:0.1em;text-transform:uppercase;
+  color:var(--mist);padding:0 8px 7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.dock-card.active .dc-state{color:var(--earthlight)}
+
+.drag-hint{
+  position:absolute;left:50%;top:47%;transform:translateX(-50%);
+  font-family:var(--mono);font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:rgba(233,226,212,0.55);
+  pointer-events:none;transition:opacity 1s;text-shadow:0 1px 12px #000;
+}
+.drag-hint.gone{opacity:0}
+@media (max-width:760px){.drag-hint{display:none}}
+
+/* ambient mode */
+body.ambient .bar,body.ambient .hud-mid,body.ambient .dock,body.ambient .timebar,body.ambient .site-id .place,body.ambient main,body.ambient .drag-hint{display:none}
+body.ambient .hud-top{padding-top:26px}
+body.ambient .site-id h1{font-size:clamp(18px,2.4vw,26px);opacity:0.7}
+
+/* ============ sections ============ */
+main{position:relative;z-index:1;background:var(--void)}
+section.block{padding:110px 0 20px;border-top:1px solid var(--line-soft)}
+section.block:first-of-type{border-top:none}
+.eyebrow{
+  font-family:var(--mono);font-size:10px;letter-spacing:0.34em;text-transform:uppercase;color:var(--earthlight);
+  display:block;margin-bottom:18px;
+}
+.block h2{
+  font-family:var(--display);font-weight:440;font-size:clamp(30px,4.6vw,52px);line-height:1.04;
+  margin:0 0 14px;letter-spacing:0.002em;max-width:17ch;
+  font-variation-settings:'SOFT' 28;
+}
+.block .lede{color:var(--mist);max-width:52ch;margin:0 0 44px;font-size:16px}
+.block .lede em{color:var(--porcelain);font-style:normal}
+
+/* almanac */
+.almanac{display:grid;grid-template-columns:300px 1fr;gap:56px;align-items:start}
+@media (max-width:820px){.almanac{grid-template-columns:1fr;gap:36px}}
+.phase-fig{display:flex;flex-direction:column;align-items:center;gap:14px}
+.phase-fig canvas{width:240px;height:240px}
+.phase-fig figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;color:var(--mist);text-transform:uppercase;text-align:center;line-height:1.9}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line-soft);border:1px solid var(--line-soft)}
+@media (max-width:640px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--void);padding:20px 18px 16px}
+.stat dt{font-family:var(--mono);font-size:9.5px;letter-spacing:0.2em;text-transform:uppercase;color:var(--faint);margin:0 0 10px}
+.stat dd{margin:0;font-family:var(--mono);font-size:21px;font-weight:300;letter-spacing:0.01em;font-variant-numeric:tabular-nums}
+.stat dd .unit{font-size:11px;color:var(--mist);margin-left:4px;letter-spacing:0.08em}
+.stat dd .sub{display:block;font-size:10px;color:var(--mist);margin-top:6px;letter-spacing:0.06em}
+.almanac-line{
+  grid-column:1 / -1;margin-top:40px;font-family:var(--display);font-style:italic;font-weight:430;
+  font-size:clamp(18px,2.6vw,26px);color:rgba(233,226,212,0.9);max-width:34ch;line-height:1.35;
+}
+.almanac-line .hl{color:var(--earthlight);font-style:normal}
+
+/* home */
+.home-grid{display:grid;grid-template-columns:1fr 300px;gap:56px;align-items:start}
+@media (max-width:820px){.home-grid{grid-template-columns:1fr}}
+.home-fig{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:6px}
+.home-fig canvas{width:264px;height:264px}
+.home-fig figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;color:var(--mist);text-transform:uppercase;text-align:center;line-height:1.9}
+.home-search{display:flex;gap:10px;max-width:460px;margin-bottom:10px}
+.home-search input{
+  flex:1;background:var(--pane);border:1px solid var(--line);border-radius:3px;
+  padding:13px 16px;font-size:15px;color:var(--porcelain);
+}
+.home-search input::placeholder{color:var(--faint)}
+.home-search button{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:0.2em;text-transform:uppercase;
+  border:1px solid rgba(143,190,227,0.4);color:var(--earthlight);border-radius:3px;padding:0 20px;
+  transition:background-color .2s;
+}
+.home-search button:hover{background:rgba(143,190,227,0.08)}
+.home-status{font-family:var(--mono);font-size:11px;color:var(--faint);min-height:18px;letter-spacing:0.06em}
+.home-result{margin-top:34px;display:none}
+.home-result.on{display:block}
+.home-result .big{
+  font-family:var(--display);font-weight:500;font-size:clamp(24px,3.6vw,40px);line-height:1.12;margin:0 0 12px;max-width:24ch;
+}
+.home-result .big .hl{color:var(--brass)}
+.home-result .detail{color:var(--mist);max-width:52ch;margin:0}
+.home-result .forget{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--faint);margin-top:16px;display:inline-block;border-bottom:1px dotted var(--faint)}
+.home-result .forget:hover{color:var(--mist)}
+
+/* arrivals */
+.arrivals{border-top:1px solid var(--line-soft)}
+.arrival{
+  display:grid;grid-template-columns:110px 1fr auto;gap:20px;align-items:baseline;
+  padding:22px 4px;border-bottom:1px solid var(--line-soft);
+}
+@media (max-width:640px){.arrival{grid-template-columns:1fr;gap:6px}}
+.arrival .when{font-family:var(--mono);font-size:11px;color:var(--brass);letter-spacing:0.08em}
+.arrival .who{min-width:0}
+.arrival .who .n{font-family:var(--display);font-weight:540;font-size:20px;display:block}
+.arrival .who .a{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mist)}
+.arrival .who .d{color:var(--mist);font-size:13.5px;margin:6px 0 0;max-width:64ch;display:block}
+.arrival .count{font-family:var(--mono);font-size:12px;color:var(--porcelain);font-variant-numeric:tabular-nums;white-space:nowrap}
+.arrival .count.live{color:var(--signal)}
+.arrivals-note{font-family:var(--mono);font-size:10px;color:var(--faint);letter-spacing:0.08em;margin-top:14px}
+
+/* promise */
+.promise p{font-size:17px;line-height:1.75;color:rgba(233,226,212,0.88);max-width:58ch;margin:0 0 22px}
+.promise p.big{
+  font-family:var(--display);font-weight:480;font-size:clamp(21px,3vw,29px);line-height:1.35;max-width:30ch;
+  margin-bottom:34px;
+}
+.promise .hl{color:var(--earthlight)}
+.fine,.promise p.fine{font-size:11.5px;color:var(--faint);max-width:74ch;line-height:1.7;margin-top:56px}
+.fine a{border-bottom:1px dotted var(--faint)}
+.fine a:hover{color:var(--mist)}
+
+footer{padding:64px 0 46px;border-top:1px solid var(--line-soft);margin-top:100px}
+.foot{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.foot .fm{font-family:var(--display);font-size:17px;font-weight:560}
+.foot .fs{font-family:var(--mono);font-size:10px;color:var(--faint);letter-spacing:0.14em;text-transform:uppercase;margin-top:6px}
+.foot-links{display:flex;gap:20px}
+.foot-links a{font-family:var(--mono);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--mist)}
+.foot-links a:hover{color:var(--porcelain)}
+
+/* reveal on scroll */
+.rv{opacity:0;transform:translateY(26px);transition:opacity .9s cubic-bezier(.2,.6,.2,1),transform .9s cubic-bezier(.2,.6,.2,1)}
+.rv.in{opacity:1;transform:none}
+@media (prefers-reduced-motion: reduce){.rv{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <a class="wordmark" href="#window" aria-label="LunarCams Fable — top">
+    <span class="lc" translate="no">LunarCams</span>
+    <span class="fable">Fable</span>
+  </a>
+  <div class="bar-right">
+    <span class="bar-clock" id="barClock">—</span>
+    <nav class="bar-nav">
+      <a href="#almanac">Almanac</a>
+      <a href="#home">Home</a>
+      <a href="#arrivals">Arrivals</a>
+      <a href="#promise">About</a>
+      <a href="../" title="The standard build">Classic</a>
+    </nav>
+  </div>
+</header>
+
+<section class="window" id="window">
+  <canvas class="scene" id="scene" aria-label="Live rendered view from the lunar surface"></canvas>
+  <div class="drag-hint" id="dragHint">Drag to look around</div>
+  <div class="hud">
+    <div class="hud-top">
+      <div class="site-id">
+        <span class="no" id="siteNo">LW-01</span>
+        <h1 id="siteName">—</h1>
+        <span class="place" id="sitePlace">—</span>
+      </div>
+      <div class="live-tag">
+        <span class="live-pill" id="livePill"><span class="dot"></span><span id="livePillText">Live geometry</span></span>
+        <div class="hud-actions">
+          <button class="hud-btn" id="findEarth">Find Earth</button>
+          <button class="hud-btn" id="findSun">Find Sun</button>
+          <button class="hud-btn" id="ambientBtn">Ambient</button>
+        </div>
+      </div>
+    </div>
+    <div class="hud-mid" id="hudMid">
+      <div class="readout"><b>SUN</b><span id="roSun">—</span></div>
+      <div class="readout"><b>EARTH</b><span id="roEarth">—</span></div>
+      <div class="readout"><b>LOCAL SOL</b><span id="roSol">—</span></div>
+      <div class="readout"><b>SURFACE</b><span id="roTemp">—</span></div>
+      <p class="state-line" id="stateLine"></p>
+    </div>
+    <div class="hud-bottom">
+      <div class="timebar">
+        <button class="time-chip ev" id="jumpSunrise">Sunrise</button>
+        <button class="time-chip ev" id="jumpNoon">Noon</button>
+        <button class="time-chip ev" id="jumpSunset">Sunset</button>
+        <div class="scrub-wrap">
+          <span class="scrub-label" id="scrubLabel" hidden>T +0d 00h</span>
+          <span class="scrub-zero"></span>
+          <input class="scrub" id="scrub" type="range" min="-1296000" max="1296000" step="600" value="0"
+                 aria-label="Time machine: scrub up to 15 days forward or back">
+        </div>
+        <button class="time-chip ev" id="jumpFullEarth">Full Earth</button>
+        <button class="time-chip live-btn" id="goLive">● Live</button>
+      </div>
+      <div class="dock" id="dock" role="tablist" aria-label="Camera sites"></div>
+    </div>
+  </div>
+</section>
+
+<main>
+  <div class="wrap">
+
+    <section class="block rv" id="almanac">
+      <span class="eyebrow">The Almanac</span>
+      <h2>The Moon, this minute.</h2>
+      <p class="lede">Every number on this page is computed live from the actual geometry of the Earth–Moon system — <em>not a feed, a fact.</em></p>
+      <div class="almanac">
+        <figure class="phase-fig">
+          <canvas id="phaseCanvas" width="480" height="480"></canvas>
+          <figcaption id="phaseCaption">—</figcaption>
+        </figure>
+        <dl class="stat-grid" id="statGrid"></dl>
+        <p class="almanac-line" id="almanacLine"></p>
+      </div>
+    </section>
+
+    <section class="block rv" id="home">
+      <span class="eyebrow">Home</span>
+      <h2>Find your house from the Moon.</h2>
+      <p class="lede">Earth turns once beneath the Moon every 24 hours and 50 minutes. Tell us where home is, and we'll mark it on the Earth in every window — <em>and tell you when it turns to face the Moon.</em></p>
+      <div class="home-grid">
+        <div>
+          <form class="home-search" id="homeForm">
+            <input id="homeInput" type="text" placeholder="Your city — e.g. Nashville" autocomplete="off" aria-label="Search your city">
+            <button type="submit">Locate</button>
+          </form>
+          <p class="home-status" id="homeStatus"></p>
+          <div class="home-result" id="homeResult">
+            <p class="big" id="homeBig"></p>
+            <p class="detail" id="homeDetail"></p>
+            <button class="forget" id="homeForget">Forget this place</button>
+          </div>
+        </div>
+        <figure class="home-fig">
+          <canvas id="homeEarth" width="528" height="528"></canvas>
+          <figcaption id="homeEarthCap">The hemisphere facing the Moon right now</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="block rv" id="arrivals">
+      <span class="eyebrow">Arrivals</span>
+      <h2>Company is coming.</h2>
+      <p class="lede">Real missions, tracked live from public spaceflight schedules. Every lander below is a future camera — <em>every landing site a future window.</em></p>
+      <div class="arrivals" id="arrivalsList"><p class="arrivals-note">Checking mission schedules…</p></div>
+      <p class="arrivals-note" id="arrivalsNote"></p>
+    </section>
+
+    <section class="block rv promise" id="promise">
+      <span class="eyebrow">The Promise</span>
+      <h2>There are no cameras on the Moon. Yet.</h2>
+      <p class="big">So we built the windows first, and pointed them at <span class="hl">the real sky</span>.</p>
+      <p>Every window on this page is a rendering — but not a fiction. The sun stands exactly where it stands over each site this minute, partway through a daylight that lasts two weeks. Earth hangs precisely where it hangs, showing the continents actually facing the Moon right now, its city lights on the true night side, its terminator where dawn genuinely is.</p>
+      <p>The stars are the 555 brightest stars in the sky, each in its measured place. When the sun sets at Aristarchus for 354 hours, it sets here too. When Earth is new and the nearside goes dark, these windows go dark with it.</p>
+      <p>One day soon, a lander will set down a camera, and the first true pixels will arrive at three hundred and eighty thousand kilometers an ocean of static away. On that day we'll swap the paint for photons. The geometry — the sun, the Earth, the stars, the long slow days — will not need to change. <span class="hl">It was already true.</span></p>
+      <p class="fine" id="fineText">
+        LunarCams Fable build. Terrain is procedural art; solar, terrestrial and stellar positions are computed from standard low-precision ephemerides (arcminute-class). Earth is shown at <span id="earthScaleNote">2.2×</span> its true angular size for legibility — from the Moon it spans 1.9°, about four full Moons wide. Star data: the HYG database. Coastlines: world.geo.json. Mission schedules: Launch Library 2. City search: Open-Meteo geocoding. Your home location is stored only in your browser. <a href="../">Classic build</a> · <a href="../notslop/">Cartography build</a>
+      </p>
+    </section>
+
+    <footer>
+      <div class="foot">
+        <div>
+          <div class="fm" translate="no">LunarCams</div>
+          <div class="fs">Windows on the Moon · est. before the cameras</div>
+        </div>
+        <div class="foot-links">
+          <a href="#window">Top</a>
+          <a href="../">Classic</a>
+          <a href="../notslop/">Cartography</a>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+</main>
+
+<script type="module" src="./app.js"></script>
+</body>
+</html>
